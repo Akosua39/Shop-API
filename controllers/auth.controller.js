@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const { loginSchema, registerSchema } = require("../utils/validation");
+const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
   const { value, error } = registerSchema.validate(req.body);
@@ -31,6 +32,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   // validate user input
   const { value, error } = loginSchema.validate(req.body);
+  console.log(req.body);
   if (error) {
     return res.status(400).json(error);
   }
@@ -50,7 +52,23 @@ const login = async (req, res) => {
     return res.status(400).json({ msg: "Invalid Credentiails" });
   }
 
-  res.status(200).json(user);
+  // generate
+  const token = jwt.sign(
+    // playload or object
+    {
+      id: user._id,
+      username: user.username,
+    },
+    // secret key used to encode the playload
+    "secret",
+
+    {
+      // options
+      expiresIn: "1h",
+    }
+  );
+
+  res.status(200).json(token);
 };
 
 module.exports = {
